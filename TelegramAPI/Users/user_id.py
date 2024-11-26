@@ -1,7 +1,7 @@
-from TelegramAPI.BotSource.config import TOKEN_API, SUPERUSER_CHAT_ID
+from TelegramAPI.config.config import TOKEN_API
 from telebot import TeleBot
 from telebot import types
-from TelegramAPI.BotSource.config import permissions_level
+from TelegramAPI.config.config import permissions_level
 
 bot = TeleBot(TOKEN_API)
 perms = permissions_level

@@ -1,4 +1,5 @@
-from get_token import get_token, get_superuser_id
+from TelegramAPI.config.get_token import get_token, get_superuser_id
+from TelegramAPI.config.get_ssh import get_ssh_key
 
 TOKEN_API = get_token()
 SUPERUSER_CHAT_ID = get_superuser_id()
@@ -6,3 +7,5 @@ SUPERUSER_CHAT_ID = get_superuser_id()
 PROJECTS = [( 'Робот-дворецкий', 'robotButler'), ('Умный свет', 'smartLight')]
 
 permissions_level = { }
+
+ssh_key = get_ssh_key()

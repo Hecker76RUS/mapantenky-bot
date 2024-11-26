@@ -5,7 +5,7 @@ def get_token():
 	return get_token_api
 
 def get_superuser_id():
-	id = open('SUPERUSERID.txt', 'r')
-	get_superuser_id_api = id.read()
-	id.close()
+	find_id = open('SUPERUSERID.txt', 'r')
+	get_superuser_id_api = find_id.read()
+	find_id.close()
 	return get_superuser_id_api

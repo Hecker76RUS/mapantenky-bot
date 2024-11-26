@@ -1,6 +1,6 @@
 from telebot import TeleBot
-from config import TOKEN_API
-from login import start_command
+from TelegramAPI.config.config import TOKEN_API
+from TelegramAPI.config.login import start_command
 
 bot = TeleBot(TOKEN_API)
 
