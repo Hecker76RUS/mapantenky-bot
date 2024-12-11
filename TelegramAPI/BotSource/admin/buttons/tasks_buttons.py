@@ -8,12 +8,11 @@ from TelegramAPI.config.config import TOKEN_API
 
 bot = TeleBot(TOKEN_API)
 
-conn = sqlite3.connect('storage.db')
-cursor = conn.cursor()
-
 def choose_project():
 	markup = InlineKeyboardMarkup()
 
+	conn = sqlite3.connect('admin_projects.db')
+	cursor = conn.cursor()
 	conn.execute('SELECT project_name FROM projects')
 	projects = cursor.fetchall()
 
@@ -29,23 +28,35 @@ def choose_direction(message):
 	development = types.InlineKeyboardButton(message.chat.id, text='Разработка', callback_data='developer')
 	direction_buttons.add(design, modeling, development)
 
+
 def create_task(call):
 	chat_id = call.message.chat.id
 	user_message = call.message.text
-	task_number = 'Задание '
+
 	bot.send_message(chat_id, text='Напишите задание')
+	try:
+		conn = sqlite3.connect('../../../DataBases/admin_tasks.db')
+		cursor = conn.cursor()
 
-	cursor.execute('SELECT MAX(id) FROM tasks')
-	result = cursor.fetchone()
-	next_id = (result[0] or 0) + 1
-	task_number = f'task{next_id}'
+		cursor.execute('SELECT MAX(task_id) FROM tasks')
+		result = cursor.fetchone()
+		next_id = (result[0] or 0) + 1 if result else 1
 
-	cursor.execute('INSERT INTO tasks (task_number, task_message) VALUES (?, ?)', (task_number, user_message))
-	conn.commit()
-	if cursor.lastrowid:
-		bot.send_message(chat_id, text='Задание успешно добавлено')
-	else:
-		bot.send_message(chat_id, text='Не удалось связаться с БД')
+		task_number = f'task{next_id}'
 
-	conn.close()
-	return task_number
+		cursor.execute(
+			'INSERT INTO tasks (task_number, task_message) VALUES (?, ?)',
+			(task_number, user_message)
+		)
+		conn.commit()
+
+		if cursor.lastrowid:
+			bot.send_message(chat_id, text='Задание успешно добавлено')
+			conn.close()
+		else:
+			bot.send_message(chat_id, text='Не удалось добавить задание в БД')
+			conn.close()
+
+	except sqlite3.Error as e:
+		bot.send_message(chat_id, text=f'Ошибка работы с базой данных: {e}')
+

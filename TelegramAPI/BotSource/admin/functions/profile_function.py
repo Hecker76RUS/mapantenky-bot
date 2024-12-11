@@ -1,4 +1,4 @@
-from TelegramAPI.BotSource.buttons.admin.buttons.admin_buttons import profile_keyboard, active_profile_keyboard
+from TelegramAPI.BotSource.admin.buttons.admin_buttons import profile_keyboard, active_profile_keyboard
 from TelegramAPI.config.config import TOKEN_API, ssh_key
 from telebot import TeleBot
 

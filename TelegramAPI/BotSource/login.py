@@ -2,10 +2,11 @@ from telebot.types import InlineKeyboardMarkup
 from telebot import TeleBot
 from telebot import types
 
-from TelegramAPI.BotSource.buttons.admin.functions import tasks_function, projects_function, profile_function
+from TelegramAPI.BotSource.admin.functions import projects_function, profile_function
+from TelegramAPI.BotSource.admin.buttons import tasks_function
 from TelegramAPI.config.config import permissions_level, SUPERUSER_CHAT_ID, TOKEN_API
 from TelegramAPI.BotSource.keyboards import backup_keyboard, start_bot_keyboard
-from TelegramAPI.BotSource.buttons.admin.buttons.admin_buttons import admin_keyboard
+from TelegramAPI.BotSource.admin.buttons.admin_buttons import admin_keyboard
 
 bot = TeleBot(TOKEN_API)
 perms = permissions_level
@@ -15,11 +16,16 @@ def start_command(message):
 	perms[message.chat.id] = 'user'
 	bot.send_message(message.chat.id, 'Выберите роль:', reply_markup=start_bot_keyboard())
 
+## @bot.message_handler(commands=['admin_profile'])
+## def admin_profile_command(command):
+##	admin_profile_command(command)
+
 @bot.callback_query_handler(func=lambda call: call.data in ['user', 'superuser', 'backup_button']
                                               or call.data in ['admin_tasks', 'admin_projects', 'admin_profile']
                                               or call.data in ['create_task', 'delete_task']
                                               or call.data in ['create_project', 'delete_project']
                                               or call.data in ['ssh_key', 'admin_profile_backup_button', 'admin_active_profile_backup_button'])
+
 def chose_role(call):
 	chat_id = call.message.chat.id
 	if call.data == 'backup_button':

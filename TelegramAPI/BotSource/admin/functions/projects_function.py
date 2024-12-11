@@ -1,4 +1,4 @@
-from TelegramAPI.BotSource.buttons.admin.buttons.admin_buttons import projects_keyboard
+from TelegramAPI.BotSource.admin.buttons.admin_buttons import projects_keyboard
 from TelegramAPI.config.config import TOKEN_API
 from telebot import TeleBot
 import sqlite3
