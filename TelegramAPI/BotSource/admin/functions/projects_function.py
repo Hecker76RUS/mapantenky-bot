@@ -5,33 +5,33 @@ import sqlite3
 
 bot = TeleBot(TOKEN_API)
 
-def is_projects_open(call):
-	chat_id = call.message.chat.id
+def is_projects_open(message):
+	chat_id = message.chat.id
 	bot.send_message(chat_id, text='Выберите действие:', reply_markup=projects_keyboard())
 	return projects_keyboard()
 
-@bot.message_handler(func=lambda message: True)
-def add_new_project(call):
-	chat_id = call.message.chat.id
-	bot.send_message(chat_id, text='Введите название проекта:')
-	def check_project_name(message):
-		project_name = message.text.strip().lower()
-		conn = sqlite3.connect('tasks.db')
+def add_new_project(message):
+	chat_id = message.chat.id
+	project_name = message.text.strip().lower()
+	try:
+		conn = sqlite3.connect('C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\DataBases\\projects.db')
 		cursor = conn.cursor()
 
-		# Check if project exists
-		cursor.execute("SELECT 1 FROM projects WHERE LOWER(project_name) = ?", (project_name,))
+		cursor.execute("SELECT * FROM projects WHERE LOWER(project_name) = ?", (project_name,))
 		data = cursor.fetchone()
-
 		if data:
 			bot.send_message(chat_id, text='Проект с таким названием уже существует.')
+			conn.close()
 		else:
-			# Insert the new project
-			cursor.execute("INSERT INTO projects (project_name) VALUES (?)", (message.text,))
+			cursor.execute(
+				"INSERT INTO projects (project_name, project_name_callback) VALUES (?,?)",
+			    (message.text, message.text)
+			)
 			conn.commit()
+			conn.close()
 			bot.send_message(chat_id, text='Проект успешно добавлен в базу данных.')
 
-		cursor.close()
+	except Exception as e:
+		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
+	finally:
 		conn.close()
-
-	bot.register_next_step_handler_by_chat_id(chat_id, check_project_name)

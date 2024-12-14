@@ -1,9 +1,7 @@
 import sqlite3
 
-conn = sqlite3.connect('../../../DataBases/admin_tasks.db')
+conn = sqlite3.connect('../../../DataBases/projects.db')
 cursor = conn.cursor()
 
-upload = "DELETE FROM tasks WHERE task_message = 'DW'"
+upload = "CREATE TABLE projects (project_name TEXT, project_name_callback TEXT)"
 cursor.execute(upload)
-conn.commit()
-conn.close()

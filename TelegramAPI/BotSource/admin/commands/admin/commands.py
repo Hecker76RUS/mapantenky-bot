@@ -1,7 +1,6 @@
 from telebot import TeleBot
 from TelegramAPI.config.config import TOKEN_API, SUPERUSER_CHAT_ID
-from TelegramAPI.BotSource.admin.functions import projects_function, profile_function
-from TelegramAPI.BotSource.admin.buttons import tasks_function
+from TelegramAPI.BotSource.admin.functions import projects_function, profile_function, tasks_function
 
 bot = TeleBot(TOKEN_API)
 
