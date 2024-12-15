@@ -55,12 +55,17 @@ def connect_checker(call):
 		result1 = cursor1.fetchall()
 		if result1:
 			bot.send_message(call.message.chat.id, 'Подключение к БД-1 стабильно')
+		else:
+			bot.send_message(call.message.chat.id, 'Нет подключения к БД-1 ')
 		conn2 = sqlite3.connect(ADMIN_TASKS_PATH)
 		cursor2 = conn2.cursor()
 		cursor2.execute('SELECT task_id FROM tasks')
+
 		result2 = cursor2.fetchall()
 		if result2:
 			bot.send_message(call.message.chat.id, 'Подключение к БД-2 стабильно')
+		else:
+			bot.send_message(call.message.chat.id, 'Нет подключения к БД-2 ')
 	except sqlite3.Error as e:
 		bot.send_message(call.message.chat.id, f'Ошибка подключения: {e}')
 	finally:

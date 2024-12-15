@@ -25,7 +25,7 @@ def tasks_list(message):
 
 		buttons = [
 			types.InlineKeyboardButton(
-				text=f'Задание {task_id[0]}',
+				text=f'{task_id[0]}',
 				callback_data=f'{task_id[0]}'
 			)
 			for task_id in tasks
@@ -65,15 +65,15 @@ def create_task(message):
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
 		cursor = conn.cursor()
 
-		cursor.execute('SELECT MAX(task_id) FROM tasks')
+		cursor.execute('SELECT MAX(task_number) FROM tasks')
 		result = cursor.fetchone()
 		next_id = (result[0] or 0) + 1 if result else 1
-
-		task_number = f'task_{next_id}'
+		task_number = next_id
+		task_id = f'task_{next_id}'
 
 		cursor.execute(
-		    'INSERT INTO tasks (task_id, check_task, delete_task, task_message) VALUES (?,?,?,?)',
-		    (task_number, f'check_task_{task_number}',f'delete_check_task_{task_number}', user_message)
+		    'INSERT INTO tasks (task_number,task_id, check_task, delete_task, task_message) VALUES (?,?,?,?,?)',
+		    (task_number, task_id, f'check_task_{task_number}',f'delete_check_task_{task_number}', user_message)
 		)
 		conn.commit()
 
@@ -98,13 +98,13 @@ def select_tasks(message):
 	try:
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
 		cursor = conn.cursor()
-		cursor.execute('SELECT task_id FROM tasks')
+		cursor.execute('SELECT task_number FROM tasks')
 		tasks = cursor.fetchall()
 
 		buttons = [
 			types.InlineKeyboardButton(
-				text=f'Задание {task_id[0]}',
-				callback_data=f'check_task_{task_id[0]}'
+				text=f'Задание {task_number[0]}',
+				callback_data=f'check_task_{task_number[0]}'
 			)
 			for task_id in tasks
 		]
