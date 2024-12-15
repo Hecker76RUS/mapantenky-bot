@@ -1,7 +1,7 @@
 import sqlite3
 
-conn = sqlite3.connect('../../../DataBases/projects.db')
+conn = sqlite3.connect('../../../DataBases/admin_tasks.db')
 cursor = conn.cursor()
 
-upload = "CREATE TABLE projects (project_name TEXT, project_name_callback TEXT)"
+upload = "CREATE TABLE tasks (task_id text, check_task text, delete_task text, project text, direction text, task_message text)"
 cursor.execute(upload)
