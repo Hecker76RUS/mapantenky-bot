@@ -3,10 +3,10 @@ from telebot import TeleBot, types
 
 from TelegramAPI.BotSource.admin.functions import projects_function, profile_function, tasks_function
 from TelegramAPI.config.config import permissions_level, SUPERUSER_CHAT_ID, TOKEN_API
+from TelegramAPI.config import config
 from TelegramAPI.BotSource.keyboards import backup_keyboard, start_bot_keyboard
 from TelegramAPI.BotSource.admin.buttons.admin_buttons import admin_keyboard, connect_checker
-from TelegramAPI.BotSource.admin.buttons import tasks_buttons
-
+from TelegramAPI.BotSource.admin.buttons import tasks_buttons, projects_buttons
 bot = TeleBot(TOKEN_API, parse_mode='html')
 bot.set_my_commands([
     types.BotCommand("start", "Запуск бота"),
@@ -22,8 +22,20 @@ bot.set_my_commands([
 ])
 perms = permissions_level
 roles = ["'Администратор'", "'Пользователь'"]
-
 # =================== Общие функции ===================
+def check_perms(chat_id):
+    if str(chat_id) == str(SUPERUSER_CHAT_ID):
+        perms[chat_id] = 'superuser'
+    else:
+        perms[chat_id] = 'user'
+    return perms[chat_id]
+
+def admin(message):
+    chat_id = message.chat.id
+    photo_path = config.CHOOSE_ACTION
+    with open(photo_path, "rb") as photo:
+        bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=admin_keyboard())
+
 def send_role_selection(chat_id):
     keyboard = InlineKeyboardMarkup()
     keyboard.add(
@@ -35,9 +47,10 @@ def send_role_selection(chat_id):
 def check_superuser(chat_id):
     if str(chat_id) == str(SUPERUSER_CHAT_ID):
         perms[chat_id] = 'superuser'
+        photo_path = config.CHOOSE_ACTION
         bot.send_message(chat_id, 'Вы вошли как администратор')
-        print(f'Пользователь ID{chat_id} вошел в систему как {roles[0]}')
-        bot.send_message(chat_id, 'Выберите действие:', reply_markup=admin_keyboard())
+        with open(photo_path, "rb") as photo:
+            bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=admin_keyboard())
     else:
         bot.send_message(chat_id, 'У вас нет прав администратора', reply_markup=backup_keyboard())
 
@@ -51,14 +64,14 @@ def start_command(message):
 def help_command(message):
     help_text = "Список доступных команд:\n"
     help_text += "/start - Запуск бота\n"
-    help_text += "/admin - Открыть админ-панель\n"
-    help_text += "/tasks - Управление задачами\n"
-    help_text += "/projects - Управление проектами\n"
-    help_text += "/profile - Открыть профиль\n"
-    help_text += "/create_task - Создать задачу\n"
-    help_text += "/delete_task - Удалить задачу\n"
-    help_text += "/create_project - Создать проект\n"
-    help_text += "/delete_project - Удалить проект\n"
+    help_text += "/admin - (админ) Открыть админ-панель\n"
+    help_text += "/tasks - (админ) Управление задачами\n"
+    help_text += "/projects - (админ) Управление проектами\n"
+    help_text += "/profile - (админ) Открыть профиль\n"
+    help_text += "/create_task - (админ) Создать задачу\n"
+    help_text += "/delete_task - (админ) Удалить задачу\n"
+    help_text += "/create_project - (админ) Создать проект\n"
+    help_text += "/delete_project - (админ) Удалить проект\n"
     help_text += "/help - Список команд\n"
     bot.send_message(message.chat.id, help_text)
 
@@ -67,81 +80,93 @@ def admin_panel_command(message):
     chat_id = message.chat.id
     if str(chat_id) == str(SUPERUSER_CHAT_ID):
         perms[chat_id] = 'superuser'
+        photo_path = config.CHOOSE_ACTION
         bot.send_message(chat_id, 'Вы вошли как администратор')
-        print(f'Пользователь ID{chat_id} вошел в систему как {roles[0]}')
-        bot.send_message(chat_id, text='Выберите действие:', reply_markup=admin_keyboard())
+        with open(photo_path, "rb") as photo:
+            bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=admin_keyboard())
     else:
         bot.send_message(chat_id, 'У вас нет прав администратора', reply_markup=backup_keyboard())
 
 @bot.message_handler(commands=['tasks'])
 def tasks_command(message):
-    if check_superuser(message.chat.id) == 'superuser':
+    if check_perms(message.chat.id) == 'superuser':
         bot.send_message(message.chat.id, "Управление задачами", reply_markup=tasks_function.tasks_list(message))
     else:
         bot.send_message(message.chat.id, "У вас нет прав для выполнения этой команды.")
 
 @bot.message_handler(commands=['create_task'])
 def create_task_command(message):
-    if check_superuser(message.chat.id) == 'superuser':
-        bot.send_message(message.chat.id, "Выберите проект", reply_markup=tasks_buttons.choose_project(message))
+    if check_perms(message.chat.id) == 'superuser':
+        tasks_function.choose_project(message)
     else:
         bot.send_message(message.chat.id, "У вас нет прав для выполнения этой команды.")
 
 @bot.message_handler(commands=['delete_task'])
 def delete_task_command(message):
-    if check_superuser(message.chat.id) == 'superuser':
-        bot.send_message(message.chat.id, "Выберите задание:", reply_markup=tasks_function.select_tasks(message))
+    if check_perms(message.chat.id) == 'superuser':
+        tasks_function.select_tasks(message)
     else:
         bot.send_message(message.chat.id, "У вас нет прав для выполнения этой команды.")
 
 @bot.message_handler(commands=['projects'])
 def projects_command(message):
-    if check_superuser(message.chat.id) == 'superuser':
+    if check_perms(message.chat.id) == 'superuser':
         bot.send_message(message.chat.id, "Управление проектами", reply_markup=projects_function.is_projects_open(message))
     else:
         bot.send_message(message.chat.id, "У вас нет прав для выполнения этой команды.")
 
 @bot.message_handler(commands=['create_project'])
 def create_project_command(message):
-    if check_superuser(message.chat.id) == 'superuser':
-        bot.send_message(message.chat.id, "Введите название проекта:")
-        bot.register_next_step_handler(message, projects_function.add_new_project)
+    if check_perms(message.chat.id) == 'superuser':
+        projects_function.add_new_project(message)
+        bot.register_next_step_handler(message, projects_buttons.add_new_project_keyboard)
     else:
         bot.send_message(message.chat.id, "У вас нет прав для выполнения этой команды.")
 
 @bot.message_handler(commands=['delete_project'])
 def delete_project_command(message):
-    if check_superuser(message.chat.id) == 'superuser':
+    if check_perms(message.chat.id) == 'superuser':
         bot.send_message(message.chat.id, "Выберите проект:", reply_markup=projects_function.select_project(message))
     else:
         bot.send_message(message.chat.id, "У вас нет прав для выполнения этой команды.")
 
+# ========= КНОПКИ =============
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
     chat_id = call.message.chat.id
     callbacks = {
-        # Админ панель
+
+        # ======= Админ панель =========
         'backup_button': lambda: send_role_selection(chat_id),
         'superuser': lambda: check_superuser(chat_id),
         'admin_tasks': lambda: tasks_function.is_tasks_open(call.message),
-        'check_connect': lambda: connect_checker(call),
+        'admin_profile': lambda: profile_function.is_profile_open(call),
 
         # Панель "Задания"
-        'admin_tasks_backup_button': lambda: bot.send_message(chat_id, 'Выберите действие:', reply_markup=admin_keyboard()),
+        'admin_tasks_backup_button': lambda: admin(call.message),
         'tasks_list': lambda: bot.send_message(chat_id, 'Список заданий:', reply_markup=tasks_function.tasks_list(call.message)),
-        'create_task': lambda: bot.send_message(chat_id, 'Выберите проект', reply_markup=tasks_buttons.choose_project(call.message)),
-        'delete_task': lambda: bot.send_message(chat_id, 'Выберите задание:', reply_markup=tasks_function.select_tasks(call.message)),
+        'create_task': lambda: tasks_function.choose_project(call.message),
+        'delete_task': lambda: tasks_function.select_tasks(call.message),
+        'backup_task_select_button': lambda: tasks_function.is_tasks_open(call.message),
+        'backup_task_list_button': lambda: tasks_function.is_tasks_open(call.message),
+        'backup_task_choose_project_button': lambda: tasks_function.is_tasks_open(call.message),
+        'backup_tasks_choose_direction_button': lambda: tasks_function.choose_project(call.message),
+        'backup_delete_tasks_button': lambda:tasks_function.select_tasks(call.message),
 
         # Панель "Проекты"
         'admin_projects': lambda: projects_function.is_projects_open(call.message),
-        'admin_projects_backup_button': lambda: bot.send_message(chat_id, 'Выберите действие:', reply_markup=admin_keyboard()),
-        'create_project': lambda: bot.send_message(chat_id, 'Введите название проекта:', bot.register_next_step_handler(call.message, projects_function.add_new_project)),
-        'delete_project': lambda: bot.send_message(chat_id, 'Выберите проект:', reply_markup=projects_function.select_project(call.message)),
+        'admin_projects_backup_button': lambda: admin(call.message),
+        'delete_project': lambda: projects_function.select_project(call.message),
+        'projects_list': lambda: bot.send_message(chat_id, 'Существующие проекты:', reply_markup=projects_buttons.projects_list(call.message)),
+        'backup_projects_list_button': lambda: projects_function.is_projects_open(call.message),
+        'backup_projects_select_button': lambda: projects_function.is_projects_open(call.message),
 
         # Панель "Профиль"
-        'admin_profile': lambda: profile_function.is_profile_open(call),
         'ssh_key': lambda: profile_function.is_ssh_key_chose(call),
-        'admin_profile_backup_button': lambda: bot.send_message(chat_id, 'Выберите действие:', reply_markup=admin_keyboard()),
+        'admin_profile_backup_button': lambda: admin(call.message),
+        'admin_active_profile_backup_button': lambda: profile_function.is_profile_open(call),
+
+        # ======== Юзер панель ==========
         'user': lambda: bot.send_message(chat_id, 'Вы вошли как пользователь')
     }
 
@@ -153,9 +178,9 @@ def callback_handler(call):
     elif call.data.startswith('task_'):
         tasks_function.is_tasks_list_open(call)
     elif call.data.startswith("project_"):
-        bot.send_message(chat_id, 'Выберите направление:', reply_markup=tasks_buttons.choose_direction())
+        tasks_function.save_project_data(call)
     elif call.data.startswith("dir_"):
-        bot.send_message(chat_id, 'Напишите задание:')
+        tasks_function.save_direction_data(call)
         bot.register_next_step_handler(call.message, tasks_function.create_task)
     elif call.data.startswith('delete_project_'):
         projects_function.delete_project(call)
@@ -163,6 +188,14 @@ def callback_handler(call):
         tasks_function.view_selected_task(call)
     elif call.data.startswith('delete_check_task_'):
         tasks_function.delete_task(call)
+
+    # ========== ИСКЛЮЧЕНИЯ ===========
+    elif call.data == 'create_project':
+        projects_function.add_new_project(call.message)
+        bot.register_next_step_handler(call.message, projects_buttons.add_new_project_keyboard)
+    elif call.data == 'check_connect':
+        connect_checker(call)
+        admin(call.message)
     else:
         bot.send_message(chat_id, 'Неизвестная команда.')
 

@@ -1,5 +1,7 @@
 from TelegramAPI.BotSource.admin.buttons.admin_buttons import projects_keyboard
 from TelegramAPI.config.config import TOKEN_API, PROJECTS_PATH
+from TelegramAPI.config import config
+from TelegramAPI.BotSource.admin.buttons import  projects_buttons
 from telebot import TeleBot
 from telebot.types import InlineKeyboardMarkup
 from telebot import types
@@ -9,60 +11,22 @@ bot = TeleBot(TOKEN_API)
 
 def is_projects_open(message):
 	chat_id = message.chat.id
-	bot.send_message(chat_id, text='Выберите действие:', reply_markup=projects_keyboard())
+	photo_path = config.PROJECTS
+	with open(photo_path, "rb") as photo:
+		bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=projects_keyboard())
 	return projects_keyboard()
 
 def add_new_project(message):
 	chat_id = message.chat.id
-	project_name = message.text.strip().lower()
-	try:
-		conn = sqlite3.connect(PROJECTS_PATH)
-		cursor = conn.cursor()
-
-		cursor.execute("SELECT * FROM projects WHERE LOWER(project_name) = ?", (project_name,))
-		data = cursor.fetchone()
-		if data:
-			bot.send_message(chat_id, text='Проект с таким названием уже существует.')
-			conn.close()
-		else:
-			cursor.execute(
-				"INSERT INTO projects (project_name, project_name_callback, delete_project) VALUES (?,?,?)",
-			    (message.text, f'project_{message.text}', f'delete_project_{message.text}')
-			)
-			conn.commit()
-			conn.close()
-			bot.send_message(chat_id, text='Проект успешно добавлен в базу данных.')
-			is_projects_open(message)
-	except Exception as e:
-		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		is_projects_open(message)
-	finally:
-		conn.close()
+	photo_path = config.CREATE_PROJECT
+	with open(photo_path, "rb") as photo:
+		bot.send_photo(chat_id=chat_id, photo=photo, caption='Введите название проекта:')
 
 def select_project(message):
 	chat_id = message.chat.id
-	choose_project_keyboard = InlineKeyboardMarkup()
-	try:
-		conn = sqlite3.connect(PROJECTS_PATH)
-		cursor = conn.cursor()
-		cursor.execute('SELECT project_name FROM projects')
-		projects = cursor.fetchall()
-
-		buttons = [
-			types.InlineKeyboardButton(
-				text=f'{project_name[0]}',
-				callback_data=f'delete_project_{project_name[0]}'
-			)
-			for project_name in projects
-		]
-
-		for button in buttons:
-			choose_project_keyboard.add(button)
-		return choose_project_keyboard
-		conn.close()
-	except Exception as e:
-		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		is_projects_open(message)
+	photo_path = config.DELETE_PROJECT
+	with open(photo_path, "rb") as photo:
+		bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=projects_buttons.select_project_keyboard(message))
 
 def delete_project(call):
 	callback_data = call.data

@@ -71,4 +71,3 @@ def connect_checker(call):
 	finally:
 		conn1.close()
 		conn2.close()
-		bot.send_message(call.message.chat.id, 'Выберите действие:', reply_markup=admin_keyboard())

@@ -23,3 +23,27 @@ def get_admin_task_link():
 
 def get_projects_link():
     return load_config().get("projects_link")
+
+def get_choose_action():
+    return load_config().get("choose_action")
+
+def get_create_project():
+    return load_config().get("create_project")
+
+def get_create_task():
+    return load_config().get("create_task")
+
+def get_delete_project():
+    return load_config().get("delete_project")
+
+def get_delete_task():
+    return load_config().get("delete_task")
+
+def get_profile():
+    return load_config().get("profile")
+
+def get_projects():
+    return load_config().get("projects")
+
+def get_tasks():
+    return load_config().get("tasks")

@@ -1,22 +1,31 @@
 import sqlite3
-import time
 
 from telebot import TeleBot
 from telebot import types
 from telebot.types import InlineKeyboardMarkup
-from TelegramAPI.BotSource.admin.buttons import admin_buttons
+from TelegramAPI.BotSource.admin.buttons import admin_buttons, tasks_buttons
 from TelegramAPI.config.config import TOKEN_API, ADMIN_TASKS_PATH
-from TelegramAPI.BotSource.admin.buttons import tasks_buttons
+from TelegramAPI.config import config
 
 bot = TeleBot(TOKEN_API)
+user_data = {}
+
+def choose_project(message):
+	chat_id = message.chat.id
+	photo_path = config.CREATE_TASK
+	with open(photo_path, "rb") as photo:
+		bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=tasks_buttons.choose_project_keyboard(message))
 
 def is_tasks_open(message):
 	chat_id = message.chat.id
-	bot.send_message(chat_id, 'Выберите действие:', reply_markup=admin_buttons.tasks_keyboard())
+	photo_path = config.TASKS
+	with open(photo_path, "rb") as photo:
+		bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=admin_buttons.tasks_keyboard())
 
 def tasks_list(message):
 	chat_id = message.chat.id
 	view_tasks_keyboard = InlineKeyboardMarkup()
+	backup = types.InlineKeyboardButton('Назад', callback_data='backup_task_list_button')
 	try:
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
 		cursor = conn.cursor()
@@ -33,6 +42,7 @@ def tasks_list(message):
 
 		for button in buttons:
 			view_tasks_keyboard.add(button)
+		view_tasks_keyboard.add(backup)
 		return view_tasks_keyboard
 		conn.close()
 	except Exception as e:
@@ -47,7 +57,7 @@ def is_tasks_list_open(call):
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
 		cursor = conn.cursor()
 		cursor.execute('SELECT task_message FROM tasks WHERE task_id = ?',
-		               (callback_data,))
+					   (callback_data,))
 		text = cursor.fetchall()
 		backup_button = types.InlineKeyboardButton(text='Назад', callback_data='backup_delete_tasks_button')
 		tasks_list_keyboard.add(backup_button)
@@ -61,6 +71,7 @@ def is_tasks_list_open(call):
 def create_task(message):
 	chat_id = message.chat.id
 	user_message = message.text
+
 	try:
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
 		cursor = conn.cursor()
@@ -69,16 +80,17 @@ def create_task(message):
 		result = cursor.fetchone()
 		next_id = (result[0] or 0) + 1 if result else 1
 		task_number = next_id
+		project_name = user_data.get(chat_id, {}).get('project', 'Не указан')
+		direction = user_data.get(chat_id, { }).get('direction', 'Не указано')
 		task_id = f'task_{next_id}'
 
 		cursor.execute(
-		    'INSERT INTO tasks (task_number,task_id, check_task, delete_task, task_message) VALUES (?,?,?,?,?)',
-		    (task_number, task_id, f'check_task_{task_number}',f'delete_check_task_{task_number}', user_message)
+			'INSERT INTO tasks (task_number,task_id, check_task, delete_task, project, direction, task_message) VALUES (?,?,?,?,?,?,?)',
+			(task_number, task_id, f'check_task_{task_number}',f'delete_check_task_{task_number}', project_name, direction, user_message)
 		)
 		conn.commit()
 
 		if cursor.lastrowid:
-			print(f'Данные добавлены в таблицу tasks. Добавленные данные: {task_number}, {user_message}')
 			bot.send_message(chat_id, text='Задание успешно добавлено')
 			is_tasks_open(message)
 
@@ -94,28 +106,9 @@ def create_task(message):
 
 def select_tasks(message):
 	chat_id = message.chat.id
-	choose_tasks_keyboard = InlineKeyboardMarkup()
-	try:
-		conn = sqlite3.connect(ADMIN_TASKS_PATH)
-		cursor = conn.cursor()
-		cursor.execute('SELECT task_number FROM tasks')
-		tasks = cursor.fetchall()
-
-		buttons = [
-			types.InlineKeyboardButton(
-				text=f'Задание {task_number[0]}',
-				callback_data=f'check_task_{task_number[0]}'
-			)
-			for task_id in tasks
-		]
-
-		for button in buttons:
-			choose_tasks_keyboard.add(button)
-		return choose_tasks_keyboard
-		conn.close()
-	except Exception as e:
-		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		is_projects_open(message)
+	photo_path = config.DELETE_TASK
+	with open(photo_path, "rb") as photo:
+		bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=tasks_buttons.select_tasks_keyboard(message))
 
 def view_selected_task(call):
 	callback_data = call.data
@@ -125,7 +118,7 @@ def view_selected_task(call):
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
 		cursor = conn.cursor()
 		cursor.execute('SELECT task_message FROM tasks WHERE check_task = ?',
-		               (callback_data,))
+					   (callback_data,))
 		text = cursor.fetchall()
 		backup_button = types.InlineKeyboardButton(text='Назад', callback_data='backup_delete_tasks_button')
 		delete_task_button = types.InlineKeyboardButton(text='Удалить', callback_data=f'delete_{callback_data}')
@@ -158,3 +151,19 @@ def delete_task(call):
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
 		is_tasks_open(call.message)
 		conn.close()
+
+def save_project_data(call):
+	chat_id = call.message.chat.id
+	project_name = call.data.split('project_')[1]
+	user_data[chat_id] = user_data.get(chat_id, { })
+	user_data[chat_id]['project'] = project_name
+	bot.send_message(chat_id, f'Вы выбрали проект: {project_name}')
+	bot.send_message(chat_id, "Теперь выберите направление:", reply_markup=tasks_buttons.choose_direction())
+
+def save_direction_data(call):
+	chat_id = call.message.chat.id
+	direction = call.data.split('dir_')[1]
+	user_data[chat_id] = user_data.get(chat_id, { })
+	user_data[chat_id]['direction'] = direction
+	bot.send_message(chat_id, f'Вы выбрали направление: {direction}')
+	bot.send_message(chat_id, "Напишите описание задачи:")

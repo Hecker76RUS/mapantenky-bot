@@ -3,5 +3,13 @@
     "superuser_id": "876067511",
     "ssh_key": "debug",
     "admin_task_link": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\DataBases\\admin_tasks.db",
-    "projects_link": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\DataBases\\projects.db"
+    "projects_link": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\DataBases\\projects.db",
+    "choose_action": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\choose_action.jpg",
+    "create_project": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\create_project.jpg",
+    "create_task": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\create_task.jpg",
+    "delete_project": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\delete_project.jpg",
+    "delete_task": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\delete_task.jpg",
+    "profile": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\profile.jpg",
+    "projects": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\projects.jpg",
+    "tasks": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\tasks.jpg"
 }
