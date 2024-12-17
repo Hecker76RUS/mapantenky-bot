@@ -4,6 +4,7 @@
     "ssh_key": "debug",
     "admin_task_link": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\DataBases\\admin_tasks.db",
     "projects_link": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\DataBases\\projects.db",
+    "users_link": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\DataBases\\users.db",
     "choose_action": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\choose_action.jpg",
     "create_project": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\create_project.jpg",
     "create_task": "C:\\Users\\kudrii\\PycharmProjects\\Mapantenky_bot\\TelegramAPI\\BotSource\\admin\\images\\create_task.jpg",

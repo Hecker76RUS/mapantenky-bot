@@ -24,6 +24,9 @@ def get_admin_task_link():
 def get_projects_link():
     return load_config().get("projects_link")
 
+def get_users_link():
+    return load_config().get("users_link")
+
 def get_choose_action():
     return load_config().get("choose_action")
 

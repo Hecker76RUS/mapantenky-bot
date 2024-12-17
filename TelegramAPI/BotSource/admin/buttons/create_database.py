@@ -1,7 +1,11 @@
 import sqlite3
 
-conn = sqlite3.connect('../../../DataBases/admin_tasks.db')
+conn = sqlite3.connect('../../../DataBases/users.db')
 cursor = conn.cursor()
 
-upload = "CREATE TABLE tasks (task_number int, task_id text, check_task text, delete_task text, project text, direction text, task_message text)"
-cursor.execute(upload)
+upload = ("CREATE TABLE users (id int not null, role text not null, name text not null ,"
+          " surname text not null , direction text not null , project text, task text, "
+          "active_task text)")
+id1 = 876067511
+cursor.execute('DELETE FROM users WHERE id = ?', (id1,))
+conn.commit()

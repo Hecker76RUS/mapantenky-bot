@@ -2,11 +2,14 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot import TeleBot, types
 
 from TelegramAPI.BotSource.admin.functions import projects_function, profile_function, tasks_function
+from TelegramAPI.BotSource.user.functions.register_function import get_name
 from TelegramAPI.config.config import permissions_level, SUPERUSER_CHAT_ID, TOKEN_API
 from TelegramAPI.config import config
 from TelegramAPI.BotSource.keyboards import backup_keyboard, start_bot_keyboard
 from TelegramAPI.BotSource.admin.buttons.admin_buttons import admin_keyboard, connect_checker
 from TelegramAPI.BotSource.admin.buttons import tasks_buttons, projects_buttons
+from TelegramAPI.BotSource.user.functions import register_function
+
 bot = TeleBot(TOKEN_API, parse_mode='html')
 bot.set_my_commands([
     types.BotCommand("start", "Запуск бота"),
@@ -167,7 +170,8 @@ def callback_handler(call):
         'admin_active_profile_backup_button': lambda: profile_function.is_profile_open(call),
 
         # ======== Юзер панель ==========
-        'user': lambda: bot.send_message(chat_id, 'Вы вошли как пользователь')
+        'surname_true': lambda: register_function.get_direction(call.message),
+        'finish_registration': lambda: register_function.finish_registration(call.message)
     }
 
     # Проверка словаря
@@ -196,6 +200,24 @@ def callback_handler(call):
     elif call.data == 'check_connect':
         connect_checker(call)
         admin(call.message)
+
+    # ========== РЕГИСТРАЦИЯ ===========
+    elif call.data == 'user':
+        register_function.start_registration(call.message)
+        bot.register_next_step_handler(call.message, register_function.save_temp_name)
+
+    elif call.data == 'name_true':
+        register_function.get_surname(call.message)
+        bot.register_next_step_handler(call.message, register_function.save_temp_surname)
+    elif call.data == 'name_false':
+        register_function.remove_temp_name(call.message)
+        bot.register_next_step_handler(call.message, register_function.save_temp_name)
+
+    elif call.data == 'surname_false':
+        register_function.remove_temp_surname(call.message)
+        bot.register_next_step_handler(call.message, register_function.save_temp_surname)
+    elif call.data.startswith('user_dir'):
+        register_function.save_direction(call)
     else:
         bot.send_message(chat_id, 'Неизвестная команда.')
 

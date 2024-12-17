@@ -1,7 +1,6 @@
 from telebot import types
 from telebot.types import InlineKeyboardMarkup
 
-
 def backup_keyboard():
 	back_keyboard = InlineKeyboardMarkup()
 	backup_key = types.InlineKeyboardButton(text='Назад', callback_data='backup_button')
