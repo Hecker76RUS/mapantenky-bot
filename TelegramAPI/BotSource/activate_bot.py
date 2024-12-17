@@ -8,7 +8,8 @@ from TelegramAPI.config import config
 from TelegramAPI.BotSource.keyboards import backup_keyboard, start_bot_keyboard
 from TelegramAPI.BotSource.admin.buttons.admin_buttons import admin_keyboard, connect_checker
 from TelegramAPI.BotSource.admin.buttons import tasks_buttons, projects_buttons
-from TelegramAPI.BotSource.user.functions import register_function
+from TelegramAPI.BotSource.user.functions import register_function, login_function, user_function, user_tasks_function
+
 
 bot = TeleBot(TOKEN_API, parse_mode='html')
 bot.set_my_commands([
@@ -171,7 +172,9 @@ def callback_handler(call):
 
         # ======== Юзер панель ==========
         'surname_true': lambda: register_function.get_direction(call.message),
-        'finish_registration': lambda: register_function.finish_registration(call.message)
+        'finish_registration': lambda: register_function.finish_registration(call.message),
+        'backup_user_task_list': lambda: user_function.user_panel(call.message),
+        'backup_user_show_tasks': lambda: user_tasks_function.user_tasks_panel(call.message),
     }
 
     # Проверка словаря
@@ -203,7 +206,7 @@ def callback_handler(call):
 
     # ========== РЕГИСТРАЦИЯ ===========
     elif call.data == 'user':
-        register_function.start_registration(call.message)
+        login_function.check_registration(call.message)
         bot.register_next_step_handler(call.message, register_function.save_temp_name)
 
     elif call.data == 'name_true':

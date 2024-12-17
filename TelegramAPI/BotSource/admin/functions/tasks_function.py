@@ -59,7 +59,7 @@ def is_tasks_list_open(call):
 		cursor.execute('SELECT task_message FROM tasks WHERE task_id = ?',
 					   (callback_data,))
 		text = cursor.fetchall()
-		backup_button = types.InlineKeyboardButton(text='Назад', callback_data='backup_delete_tasks_button')
+		backup_button = types.InlineKeyboardButton(text='Назад', callback_data='backup_task_select_button')
 		tasks_list_keyboard.add(backup_button)
 		bot.send_message(chat_id, f'Задание выглядит так:{text}', reply_markup=tasks_list_keyboard)
 		conn.close()

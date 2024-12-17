@@ -5,10 +5,12 @@ from telebot import TeleBot, types
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from TelegramAPI.config import config
 from TelegramAPI.BotSource.user.buttons import register_buttons
+from TelegramAPI.BotSource.user.functions import user_function
 
 bot = TeleBot(config.TOKEN_API, parse_mode='html')
 register_data = {}
 perms = config.permissions_level
+
 def start_registration(message):
 	get_name(message)
 def get_name(message):
@@ -84,7 +86,7 @@ def finish_registration(message):
 		conn.commit()
 		if cursor.lastrowid:
 			bot.send_message(chat_id, 'Поздравляю! Регистрация завершена🥳')
-			bot.send_message(chat_id, 'Выберите действие') # Добавить клавиатуру
+			user_function.user_panel(message)
 		else:
 			bot.send_message(chat_id, '<b>ОШИБКА</b> \nПопробуйте позднее')
 			start_registration(message)
