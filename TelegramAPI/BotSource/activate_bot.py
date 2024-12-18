@@ -180,7 +180,7 @@ def callback_handler(call):
         'backup_user_show_tasks': lambda: user_tasks_function.user_tasks_panel(call.message),
 
         # Юзер панель
-        "user_tasks": lambda: user_tasks_function.user_tasks_panel(call.message),
+        "user_tasks": lambda: user_tasks_function.choose_user_project(call.message),
     }
 
     # Проверка словаря
@@ -201,6 +201,8 @@ def callback_handler(call):
         tasks_function.view_selected_task(call)
     elif call.data.startswith('delete_check_task_'):
         tasks_function.delete_task(call)
+    elif call.data.startswith('users_project_'):
+        user_tasks_function.user_tasks_panel(call)
     elif call.data.startswith('u_task_'):
         user_tasks_function.show_user_task(call)
     elif call.data.startswith('claim_u_task_'):

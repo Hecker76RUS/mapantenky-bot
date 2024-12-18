@@ -2,7 +2,7 @@ from telebot import TeleBot, types
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from TelegramAPI.config import config
 import sqlite3
-from TelegramAPI.BotSource.user.functions import user_function
+from TelegramAPI.BotSource.user.functions import user_function, user_tasks_function
 
 bot = TeleBot(config.TOKEN_API, parse_mode='html')
 
@@ -18,10 +18,28 @@ def user_tasks_panel_keyboard(message):
 	view_tasks_keyboard = InlineKeyboardMarkup()
 	backup = types.InlineKeyboardButton('Назад', callback_data='backup_user_task_list')
 	try:
+		conn1 = sqlite3.connect(config.USERS_PATH)
+		cursor1 = conn1.cursor()
+		cursor1.execute(
+			'SELECT direction FROM users WHERE id=?',
+			(chat_id,)
+		)
+		dir_text = cursor1.fetchone()[0]
+		dir = dir_text.split('_')[-1]
 		conn = sqlite3.connect(config.ADMIN_TASKS_PATH)
 		cursor = conn.cursor()
-		cursor.execute('SELECT task_number FROM tasks')
+		cursor.execute(
+			'SELECT direction FROM tasks WHERE direction = ?',
+			(dir,)
+		)
+		direction_text = cursor.fetchone()[0]
+		project = user_tasks_function.chose_project[chat_id]['project']
+		cursor.execute(
+			'SELECT task_number FROM tasks WHERE claim_project = ? AND direction = ?',
+            (project, direction_text)
+		)
 		tasks = cursor.fetchall()
+		print(tasks)
 
 		buttons = [
 			types.InlineKeyboardButton(
@@ -36,6 +54,7 @@ def user_tasks_panel_keyboard(message):
 		view_tasks_keyboard.add(backup)
 		return view_tasks_keyboard
 		conn.close()
+		conn1.close()
 	except Exception as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
 		user_function.user_panel(message)

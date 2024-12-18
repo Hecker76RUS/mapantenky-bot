@@ -85,9 +85,9 @@ def create_task(message):
 		task_id = f'task_{next_id}'
 
 		cursor.execute(
-			'INSERT INTO tasks (task_number,task_id, check_task, delete_task, project, direction, task_message, user_task, claim_user_task) VALUES (?,?,?,?,?,?,?,?,?)',
+			'INSERT INTO tasks (task_number,task_id, check_task, delete_task, project, direction, task_message, user_task, claim_user_task, claim_project) VALUES (?,?,?,?,?,?,?,?,?,?)',
 			(task_number, task_id, f'check_task_{task_number}',f'delete_check_task_{task_number}',
-			 project_name, direction, user_message, f'u_task_{task_number}', f'claim_u_task_{task_number}')
+			 project_name, direction, user_message, f'u_task_{task_number}', f'claim_u_task_{task_number}', f'users_project_{project_name}')
 		)
 		conn.commit()
 

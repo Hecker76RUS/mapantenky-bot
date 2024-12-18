@@ -3,14 +3,22 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from TelegramAPI.config import config
 import sqlite3
 from TelegramAPI.BotSource.admin.functions import tasks_function
-from TelegramAPI.BotSource.user.buttons import user_buttons
+from TelegramAPI.BotSource.user.buttons import user_buttons, user_tasks_buttons
 from TelegramAPI.BotSource.user.functions import user_function
 
 bot = TeleBot(config.TOKEN_API, parse_mode='html')
+chose_project = {}
 
-def user_tasks_panel(message):
+def choose_user_project(message):
 	chat_id = message.chat.id
-	bot.send_message(chat_id, '<b>Список доступных заданий:</b>', reply_markup=user_buttons.user_tasks_panel_keyboard(message))
+	bot.send_message(chat_id, 'Выберите проект:', reply_markup=user_tasks_buttons.choose_user_project_keyboard(message))
+
+def user_tasks_panel(call):
+	chat_id = call.message.chat.id
+	callback = call.data
+	chose_project[chat_id] = chose_project.get(chat_id, { })
+	chose_project[chat_id]['project'] = callback
+	bot.send_message(chat_id, '<b>Список доступных заданий:</b>', reply_markup=user_buttons.user_tasks_panel_keyboard(call.message))
 
 def show_user_task(call):
 	callback_data = call.data
@@ -45,17 +53,32 @@ def claim_task(call):
 			'SELECT task_message FROM tasks WHERE claim_user_task = ?',
 			(callback_data,)
 		)
-		result = cursor1.fetchone()
-		if result:
-			text = result[0]
+		result1 = cursor1.fetchone()
+		if result1:
+			text = result1[0]
 		else:
 			bot.send_message(chat_id, 'Задание не найдено.')
 			return
+		cursor1.execute(
+			'SELECT task_number FROM tasks WHERE claim_user_task = ?',
+			(callback_data,)
+		)
+		result2 = cursor1.fetchone()
+		if result2:
+			num = result2[0]
+		else:
+			bot.send_message(chat_id, 'Задание не найдено.')
+			return
+
 		conn2 = sqlite3.connect(config.USERS_PATH)
 		cursor2 = conn2.cursor()
 		cursor2.execute(
-			'UPDATE users SET active_task = ? WHERE id = ?',
+			'UPDATE users SET task = ? WHERE id = ?',
 			(text, chat_id)
+		)
+		cursor2.execute(
+			'UPDATE users SET active_task = ? WHERE id = ?',
+			(num, chat_id)
 		)
 		conn2.commit()
 		bot.send_message(chat_id, 'Задание успешно взято \nИнформация о задании находится во '

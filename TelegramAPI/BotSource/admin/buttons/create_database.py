@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('../../../DataBases/users.db')
+conn = sqlite3.connect('../../../DataBases/admin_tasks.db')
 cursor = conn.cursor()
 '''
 upload = ("CREATE TABLE users (id int, role text not null, name text not null ,"
@@ -9,5 +9,6 @@ upload = ("CREATE TABLE users (id int, role text not null, name text not null ,"
 '''
 
 id1 = 876067511
-cursor.execute('DELETE FROM users WHERE id = ?', (0,))
+#cursor.execute('DELETE FROM users WHERE role = ?', ('0',))
+cursor.execute('ALTER TABLE tasks ADD COLUMN claim_project text')
 
