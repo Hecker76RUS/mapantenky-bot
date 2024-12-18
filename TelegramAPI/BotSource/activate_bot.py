@@ -141,6 +141,7 @@ def callback_handler(call):
     callbacks = {
 
         # ======= Админ панель =========
+        # Админ панель
         'backup_button': lambda: send_role_selection(chat_id),
         'superuser': lambda: check_superuser(chat_id),
         'admin_tasks': lambda: tasks_function.is_tasks_open(call.message),
@@ -171,10 +172,15 @@ def callback_handler(call):
         'admin_active_profile_backup_button': lambda: profile_function.is_profile_open(call),
 
         # ======== Юзер панель ==========
+
+        # Регистрация
         'surname_true': lambda: register_function.get_direction(call.message),
         'finish_registration': lambda: register_function.finish_registration(call.message),
         'backup_user_task_list': lambda: user_function.user_panel(call.message),
         'backup_user_show_tasks': lambda: user_tasks_function.user_tasks_panel(call.message),
+
+        # Юзер панель
+        "user_tasks": lambda: user_tasks_function.user_tasks_panel(call.message),
     }
 
     # Проверка словаря
@@ -195,6 +201,10 @@ def callback_handler(call):
         tasks_function.view_selected_task(call)
     elif call.data.startswith('delete_check_task_'):
         tasks_function.delete_task(call)
+    elif call.data.startswith('u_task_'):
+        user_tasks_function.show_user_task(call)
+    elif call.data.startswith('claim_u_task_'):
+        user_tasks_function.claim_task(call)
 
     # ========== ИСКЛЮЧЕНИЯ ===========
     elif call.data == 'create_project':

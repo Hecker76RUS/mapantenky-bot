@@ -9,7 +9,5 @@ upload = ("CREATE TABLE users (id int, role text not null, name text not null ,"
 '''
 
 id1 = 876067511
-cursor.execute('DELETE FROM users WHERE id = ?', (id1,))
-#conn.commit()
-#cursor.execute('INSERT INTO users (id,role,name,surname,direction) VALUES (?,?,?,?,?)', (0,'0','0','0','0',))
-conn.commit()
+cursor.execute('DELETE FROM users WHERE id = ?', (0,))
+
