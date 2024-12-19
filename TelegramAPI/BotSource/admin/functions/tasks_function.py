@@ -6,6 +6,7 @@ from telebot.types import InlineKeyboardMarkup
 from TelegramAPI.BotSource.admin.buttons import admin_buttons, tasks_buttons
 from TelegramAPI.config.config import TOKEN_API, ADMIN_TASKS_PATH
 from TelegramAPI.config import config
+from TelegramAPI.BotSource.admin.functions.projects_function import is_projects_open
 
 bot = TeleBot(TOKEN_API)
 user_data = {}
