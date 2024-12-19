@@ -1,14 +1,12 @@
 import sqlite3
-
-conn = sqlite3.connect('../../../DataBases/admin_tasks.db')
+from TelegramAPI.config import config
+conn = sqlite3.connect(config.USERS_PATH)
 cursor = conn.cursor()
-'''
-upload = ("CREATE TABLE users (id int, role text not null, name text not null ,"
-          " surname text not null , direction text not null , project text, task text, "
-          "active_task text)")
-'''
 
-id1 = 876067511
-#cursor.execute('DELETE FROM users WHERE role = ?', ('0',))
-cursor.execute('ALTER TABLE tasks ADD COLUMN claim_project text')
+# upload = 'UPDATE users SET task = ? WHERE id = ?', (task, id1)
+
+# cursor.execute(upload)
+
+cursor.execute('CREATE TABLE users (id INTEGER PRIMARY KEY,role TEXT NOT NULL,name TEXT NOT NULL,surname TEXT NOT NULL,direction TEXT NOT NULL,change_direction text,project TEXT,task TEXT,active_task TEXT)')
+#cursor.execute('DROP TABLE IF EXISTS users')
 

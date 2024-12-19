@@ -8,13 +8,14 @@ from TelegramAPI.config import config
 from TelegramAPI.BotSource.keyboards import backup_keyboard, start_bot_keyboard
 from TelegramAPI.BotSource.admin.buttons.admin_buttons import admin_keyboard, connect_checker
 from TelegramAPI.BotSource.admin.buttons import tasks_buttons, projects_buttons
-from TelegramAPI.BotSource.user.functions import register_function, login_function, user_function, user_tasks_function
+from TelegramAPI.BotSource.user.functions import register_function, login_function, user_function, user_tasks_function, user_profile_function
 
 
 bot = TeleBot(TOKEN_API, parse_mode='html')
 bot.set_my_commands([
     types.BotCommand("start", "Запуск бота"),
     types.BotCommand("admin", "Открыть админ-панель"),
+    types.BotCommand("user", "Открыть юзер-панель"),
     types.BotCommand("tasks", "Управление задачами"),
     types.BotCommand("projects", "Управление проектами"),
     types.BotCommand("profile", "Открыть профиль"),
@@ -69,6 +70,7 @@ def help_command(message):
     help_text = "Список доступных команд:\n"
     help_text += "/start - Запуск бота\n"
     help_text += "/admin - (админ) Открыть админ-панель\n"
+    help_text += "/user - Открыть юзер-панель\n"
     help_text += "/tasks - (админ) Управление задачами\n"
     help_text += "/projects - (админ) Управление проектами\n"
     help_text += "/profile - (админ) Открыть профиль\n"
@@ -90,6 +92,10 @@ def admin_panel_command(message):
             bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=admin_keyboard())
     else:
         bot.send_message(chat_id, 'У вас нет прав администратора', reply_markup=backup_keyboard())
+@bot.message_handler(commands=['user'])
+def user_panel_command(message):
+    login_function.check_registration(message)
+
 
 @bot.message_handler(commands=['tasks'])
 def tasks_command(message):
@@ -177,10 +183,15 @@ def callback_handler(call):
         'surname_true': lambda: register_function.get_direction(call.message),
         'finish_registration': lambda: register_function.finish_registration(call.message),
         'backup_user_task_list': lambda: user_function.user_panel(call.message),
-        'backup_user_show_tasks': lambda: user_tasks_function.user_tasks_panel(call.message),
+        'backup_user_show_tasks': lambda: user_tasks_function.choose_user_project(call.message),
 
         # Юзер панель
         "user_tasks": lambda: user_tasks_function.choose_user_project(call.message),
+        'backup_user_choose_project': lambda: user_function.user_panel(call.message),
+        'user_profile': lambda: user_profile_function.user_profile(call.message),
+        'task_complete': lambda: user_profile_function.task_complete(call.message),
+        'user_backup_profile_button': lambda: user_function.user_panel(call.message),
+        'change_direction': lambda: user_profile_function.on_click_change_dir(call),
     }
 
     # Проверка словаря
@@ -207,6 +218,8 @@ def callback_handler(call):
         user_tasks_function.show_user_task(call)
     elif call.data.startswith('claim_u_task_'):
         user_tasks_function.claim_task(call)
+    elif call.data.startswith('change_user_'):
+        user_profile_function.change_direction(call)
 
     # ========== ИСКЛЮЧЕНИЯ ===========
     elif call.data == 'create_project':
@@ -237,3 +250,4 @@ def callback_handler(call):
         bot.send_message(chat_id, 'Неизвестная команда.')
 
 bot.polling(none_stop=True)
+

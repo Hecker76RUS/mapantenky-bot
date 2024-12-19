@@ -81,8 +81,8 @@ def finish_registration(message):
 		direction = register_data[chat_id]['direction']
 
 		cursor.execute(
-			'INSERT INTO users (id, role, name, surname, direction) VALUES (?,?,?,?,?)',
-		               (id, role, name, surname, direction))
+			'INSERT INTO users (id, role, name, surname, direction, change_direction) VALUES (?,?,?,?,?,?)',
+		               (id, role, name, surname, direction, f'change_{direction}'))
 		conn.commit()
 		if cursor.lastrowid:
 			bot.send_message(chat_id, 'Поздравляю! Регистрация завершена🥳')

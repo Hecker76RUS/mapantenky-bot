@@ -49,41 +49,61 @@ def claim_task(call):
 	try:
 		conn1 = sqlite3.connect(config.ADMIN_TASKS_PATH)
 		cursor1 = conn1.cursor()
+		conn2 = sqlite3.connect(config.USERS_PATH)
+		cursor2 = conn2.cursor()
+
 		cursor1.execute(
 			'SELECT task_message FROM tasks WHERE claim_user_task = ?',
 			(callback_data,)
 		)
 		result1 = cursor1.fetchone()
+		print(result1)
+		cursor2.execute(
+			'SELECT task FROM users WHERE id = ?',
+			(chat_id,)
+		)
+		task_info = cursor2.fetchone()[0]
+		print(task_info)
+
 		if result1:
 			text = result1[0]
+			print(f'text:{text}')
 		else:
 			bot.send_message(chat_id, 'Задание не найдено.')
 			return
+
 		cursor1.execute(
 			'SELECT task_number FROM tasks WHERE claim_user_task = ?',
 			(callback_data,)
 		)
 		result2 = cursor1.fetchone()
+		print(result2)
 		if result2:
 			num = result2[0]
 		else:
 			bot.send_message(chat_id, 'Задание не найдено.')
 			return
-
-		conn2 = sqlite3.connect(config.USERS_PATH)
-		cursor2 = conn2.cursor()
-		cursor2.execute(
-			'UPDATE users SET task = ? WHERE id = ?',
-			(text, chat_id)
-		)
-		cursor2.execute(
-			'UPDATE users SET active_task = ? WHERE id = ?',
-			(num, chat_id)
-		)
-		conn2.commit()
-		bot.send_message(chat_id, 'Задание успешно взято \nИнформация о задании находится во '
-	                          'вкладке <b>Профиль</b>')
-		user_function.user_panel(call.message)
+		project = chose_project[chat_id]['project']
+		if task_info == None:
+			cursor2.execute(
+				'UPDATE users SET project = ? WHERE id = ?',
+				(project, chat_id)
+			)
+			cursor2.execute(
+				'UPDATE users SET task = ? WHERE id = ?',
+				(text, chat_id)
+			)
+			cursor2.execute(
+				'UPDATE users SET active_task = ? WHERE id = ?',
+				(num, chat_id)
+			)
+			conn2.commit()
+			bot.send_message(chat_id, 'Задание успешно взято \nИнформация о задании находится во '
+		                          'вкладке 👤<b>Профиль</b>')
+			user_function.user_panel(call.message)
+		else:
+			bot.send_message(chat_id, 'Вы уже взяли задание.\n Закончите его, чтобы приступить к следующему')
+			user_function.user_panel(call.message)
 	except sqlite3.Error as e:
 		print(f'{e}')
 	finally:
