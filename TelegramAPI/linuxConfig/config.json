@@ -1,0 +1,16 @@
+{
+    "api_key": "7599335725:AAHz3d2d8pNC4WHhOciaYjlFoUhc0lEDiPs",
+    "superuser_id": "876067511",
+    "ssh_key": "debug",
+    "admin_task_link": "/home/user/mapantenky-bot/TelegramAPI/DataBases/admin_tasks.db",
+    "projects_link": "/home/user/mapantenky-bot/TelegramAPI/DataBases/projects.db",
+    "users_link": "/home/user/mapantenky-bot/TelegramAPI/DataBases/users.db",
+    "choose_action": "/home/user/mapantenky-bot/TelegramAPI/BotSource/admin/images/choose_action.jpg",
+    "create_project": "/home/user/mapantenky-bot/TelegramAPI/BotSource/admin/images/create_project.jpg",
+    "create_task": "/home/user/mapantenky-bot/TelegramAPI/BotSource/admin/images/create_task.jpg",
+    "delete_project": "/home/user/mapantenky-bot/TelegramAPI/BotSource/admin/images/delete_project.jpg",
+    "delete_task":"/home/user/mapantenky-bot/TelegramAPI/BotSource/admin/images/delete_task.jpg",
+    "profile": "/home/user/mapantenky-bot/TelegramAPI/BotSource/admin/images/profile.jpg",
+    "projects": "/home/user/mapantenky-bot/TelegramAPI/BotSource/admin/images/projects.jpg",
+    "tasks": "/home/user/mapantenky-bot/TelegramAPI/BotSource/admin/images/tasks.jpg"
+}
