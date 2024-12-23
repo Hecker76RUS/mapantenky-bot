@@ -124,6 +124,7 @@ def claim_task(message):
 
 def task_complete(message):
 	chat_id = message.chat.id
+
 	try:
 		# Берем данные из строки пользователя
 		print(chat_id)
@@ -141,6 +142,10 @@ def task_complete(message):
 		task = str(cursor.fetchone()[0])
 		print(task)
 
+		conn2 = sqlite3.connect(config.ADMIN_TASKS_PATH)
+		cursor2 = conn2.cursor()
+		send_admin_task_complited(message)
+
 		# Изменяю таск сообщение на null
 		cursor.execute('UPDATE users SET task=? WHERE id=?', (None, chat_id))
 		# Заносим данные о завершении в таблиции
@@ -149,8 +154,6 @@ def task_complete(message):
 			(chat_id, name, surname, task)
 		)
 		conn.commit()
-		conn2 = sqlite3.connect(config.ADMIN_TASKS_PATH)
-		cursor2 = conn2.cursor()
 		cursor2.execute('DELETE FROM tasks WHERE task_message=?', (task,))
 		conn2.commit()
 		bot.send_message(chat_id, f'<b>{name}</b>, вы завершили задание')
@@ -165,7 +168,9 @@ def task_complete(message):
 
 def on_click_change_dir(call):
 	chat_id = call.message.chat.id
-	bot.send_message(chat_id, 'Выберите направление, в котором вы хотите работать:',reply_markup=user_profile_buttons.change_direction_keyboard(call.message) )
+	bot.send_message(chat_id, 'Выберите направление, в котором вы хотите работать:',
+	                 reply_markup=user_profile_buttons.change_direction_keyboard(call.message) )
+
 def change_direction(call):
 	chat_id = call.message.chat.id
 	callback_d = call.data
@@ -186,4 +191,24 @@ def change_direction(call):
 		if conn:
 			conn.close()
 
+def send_admin_task_complited(message):
+	chat_id = message.chat.id
+	try:
+		conn = sqlite3.connect(config.USERS_PATH)
+		cursor = conn.cursor()
+		cursor.execute('SELECT name FROM users WHERE id = ?', (chat_id,))
+		name = cursor.fetchone()[0]
+
+		cursor.execute('SELECT surname FROM users WHERE id = ?', (chat_id,))
+		surname = cursor.fetchone()[0]
+
+		cursor.execute(	'SELECT task FROM users WHERE id=?', (chat_id,))
+		task_info = cursor.fetchone()[0]
+
+		bot.send_message(config.SUPERUSER_CHAT_ID, f'Пользователь <b>{surname} {name}</b> завершил задание. <b>Описание задания:</b> {task_info}')
+	except sqlite3.Error as e:
+		print(f'{e}')
+	finally:
+		if conn:
+			conn.close()
 

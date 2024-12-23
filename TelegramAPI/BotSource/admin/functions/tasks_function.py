@@ -72,7 +72,7 @@ def is_tasks_list_open(call):
 def create_task(message):
 	chat_id = message.chat.id
 	user_message = message.text
-
+	dir_code = ''
 	try:
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
 		cursor = conn.cursor()
@@ -83,12 +83,24 @@ def create_task(message):
 		task_number = next_id
 		project_name = user_data.get(chat_id, {}).get('project', 'Не указан')
 		direction = user_data.get(chat_id, { }).get('direction', 'Не указано')
+
+		if direction == 'developer':
+			dir_code = '01'
+		if direction == 'modeler':
+			dir_code = '02'
+		if direction == 'designer':
+			dir_code = '03'
+
+		user_data[chat_id]['dir_code'] = dir_code
+
+		dir_code = user_data.get(chat_id, {}).get('dir_code')
 		task_id = f'task_{next_id}'
+		task_code = f'{dir_code}{next_id}'
 
 		cursor.execute(
 			'INSERT INTO tasks (task_number,task_id, check_task, delete_task, project, direction, task_message, user_task, claim_user_task, claim_project) VALUES (?,?,?,?,?,?,?,?,?,?)',
 			(task_number, task_id, f'check_task_{task_number}',f'delete_check_task_{task_number}',
-			 project_name, direction, user_message, f'u_task_{task_number}', f'claim_u_task_{task_number}', f'users_project_{project_name}')
+			 project_name, direction, f'№:{task_code}\n\n<b>Задание:</b>\n{user_message}', f'u_task_{task_number}', f'claim_u_task_{task_number}', f'users_project_{project_name}')
 		)
 		conn.commit()
 
