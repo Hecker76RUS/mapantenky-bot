@@ -5,6 +5,7 @@ import sqlite3
 from TelegramAPI.BotSource.admin.functions import tasks_function
 from TelegramAPI.BotSource.user.buttons import user_buttons, user_tasks_buttons
 from TelegramAPI.BotSource.user.functions import user_function
+from TelegramAPI.config.config import SUPERUSER_CHAT_ID
 
 bot = TeleBot(config.TOKEN_API, parse_mode='html')
 chose_project = {}
@@ -100,6 +101,7 @@ def claim_task(call):
 			conn2.commit()
 			bot.send_message(chat_id, 'Задание успешно взято \nИнформация о задании находится во '
 		                          'вкладке 👤<b>Профиль</b>')
+			send_admin_task(call)
 			user_function.user_panel(call.message)
 		else:
 			bot.send_message(chat_id, 'Вы уже взяли задание.\n Закончите его, чтобы приступить к следующему')
@@ -111,3 +113,24 @@ def claim_task(call):
 			conn1.close()
 		if conn2:
 			conn2.close()
+
+def send_admin_task(call):
+	chat_id = call.message.chat.id
+	try:
+		conn = sqlite3.connect(config.USERS_PATH)
+		cursor = conn.cursor()
+		cursor.execute('SELECT name FROM users WHERE id = ?', (chat_id,))
+		name = cursor.fetchone()[0]
+
+		cursor.execute('SELECT surname FROM users WHERE id = ?', (chat_id,))
+		surname = cursor.fetchone()[0]
+
+		cursor.execute('SELECT task FROM users WHERE id = ?', (chat_id,))
+		task_info = cursor.fetchone()[0]
+
+		bot.send_message(SUPERUSER_CHAT_ID, f'Пользователь <b>{surname} {name}</b> Взял задание. <b>Описание задания:</b> {task_info}')
+	except sqlite3.Error as e:
+		print(f'{e}')
+	finally:
+		if conn:
+			conn.close()
