@@ -1,18 +1,18 @@
-from telebot import TeleBot
 import sqlite3
 
+from telebot import TeleBot
 from telebot import types
 from telebot.types import InlineKeyboardMarkup
-from TelegramAPI.config.config import TOKEN_API, PROJECTS_PATH
-from TelegramAPI.config import config
-from TelegramAPI.config.config import TOKEN_API, ADMIN_TASKS_PATH
 
+from TelegramAPI.BotSource.admin.functions.projects_function import if_projects_open
+from config.config import TOKEN_API, PROJECTS_PATH, ADMIN_TASKS_PATH
+from config import config
 
 bot = TeleBot(TOKEN_API)
 
 def choose_project_keyboard(message):
 	chat_id = message.chat.id
-	chose_project_keyboard = InlineKeyboardMarkup()
+	markup = InlineKeyboardMarkup()
 	backup = types.InlineKeyboardButton('Назад', callback_data='backup_task_choose_project_button')
 	try:
 		conn = sqlite3.connect(PROJECTS_PATH)
@@ -29,25 +29,27 @@ def choose_project_keyboard(message):
 		]
 
 		for button in buttons:
-			chose_project_keyboard.add(button)
-		chose_project_keyboard.add(backup)
-		return chose_project_keyboard
-		conn.close()
+			markup.add(button)
+		markup.add(backup)
+		return markup
 	except Exception as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
+	finally:
+		if conn:
+			conn.close()
 
 def choose_direction():
-	direction_buttons = InlineKeyboardMarkup()
+	markup = InlineKeyboardMarkup()
 	design = types.InlineKeyboardButton(text='Дизайн', callback_data='dir_designer')
 	modeling = types.InlineKeyboardButton(text='Моделирование', callback_data='dir_modeler')
 	development = types.InlineKeyboardButton(text='Разработка', callback_data='dir_developer')
 	backup = types.InlineKeyboardButton(text='Назад', callback_data='backup_tasks_choose_direction_button')
-	direction_buttons.add(design, modeling, development, backup)
-	return direction_buttons
+	markup.add(design, modeling, development, backup)
+	return markup
 
 def select_tasks_keyboard(message):
 	chat_id = message.chat.id
-	choose_tasks_keyboard = InlineKeyboardMarkup()
+	markup = InlineKeyboardMarkup()
 	backup = types.InlineKeyboardButton('Назад', callback_data='backup_task_select_button')
 	try:
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
@@ -64,12 +66,14 @@ def select_tasks_keyboard(message):
 		]
 
 		for button in buttons:
-			choose_tasks_keyboard.add(button)
-		choose_tasks_keyboard.add(backup)
-		return choose_tasks_keyboard
-		conn.close()
+			markup.add(button)
+		markup.add(backup)
+		return markup
 	except Exception as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		is_projects_open(message)
+		if_projects_open(message)
+	finally:
+		if conn:
+			conn.close()
 
 

@@ -9,7 +9,7 @@ import sqlite3
 
 bot = TeleBot(TOKEN_API)
 
-def is_projects_open(message):
+def if_projects_open(message):
 	chat_id = message.chat.id
 	photo_path = config.PROJECTS
 	with open(photo_path, "rb") as photo:
@@ -40,11 +40,11 @@ def delete_project(call):
 		conn.commit()
 		if cursor.rowcount > 0:
 			bot.send_message(chat_id, f"Проект {callback_data} был удален")
-			is_projects_open(call.message)
+			if_projects_open(call.message)
 		else:
 			bot.send_message(chat_id, f"Проект {callback_data} не найден")
 		conn.close()
 	except Exception as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		is_projects_open(call.message)
+		if_projects_open(call.message)
 		conn.close()

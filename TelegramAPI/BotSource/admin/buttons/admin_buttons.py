@@ -3,7 +3,7 @@ import telebot
 from telebot import types
 from telebot.types import InlineKeyboardMarkup
 
-from TelegramAPI.config.config import TOKEN_API, ADMIN_TASKS_PATH, PROJECTS_PATH
+from TelegramAPI.config.config import TOKEN_API, ADMIN_TASKS_PATH, PROJECTS_PATH, USERS_PATH
 
 bot = telebot.TeleBot(TOKEN_API)
 # Таски, проекты, профиль. Основная страница
@@ -13,7 +13,8 @@ def admin_keyboard():
 	project_button = types.InlineKeyboardButton(text='Проекты', callback_data='admin_projects')
 	check_connection = types.InlineKeyboardButton(text='Подключение', callback_data='check_connect')
 	profile_button = types.InlineKeyboardButton(text='Профиль', callback_data='admin_profile')
-	admin_panel.add(tasks_button, project_button, check_connection, profile_button)
+	task_list = types.InlineKeyboardButton(text='Активные задания', callback_data='active_tasks')
+	admin_panel.add(tasks_button, project_button, check_connection, profile_button, task_list)
 	return admin_panel
 
 def tasks_keyboard():
@@ -46,6 +47,54 @@ def active_profile_keyboard():
 	backup_key = types.InlineKeyboardButton(text='Назад', callback_data='admin_active_profile_backup_button')
 	profile_panel.add(backup_key)
 	return profile_panel
+
+def active_tasks_list_keyboard(message):
+	chat_id = message.chat.id
+	markup = InlineKeyboardMarkup()
+	backup = types.InlineKeyboardButton('Назад', callback_data='backup_task_list_button')
+	try:
+		conn = sqlite3.connect(USERS_PATH)
+		cursor = conn.cursor()
+		cursor.execute('SELECT active_task FROM users WHERE task is not null')
+		tasks = cursor.fetchall()
+		print('успешное подключение к бд users.db')
+
+		buttons = [
+			types.InlineKeyboardButton(
+				text=f'{active_task[0]}',
+				callback_data=f'active_{active_task[0]}'
+			)
+			for active_task in tasks
+		]
+
+		for button in buttons:
+			markup.add(button)
+		markup.add(backup)
+		return markup
+		conn.close()
+	except Exception as e:
+		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
+		print(f'ошибка {e}')
+
+def active_task_text(call):
+	input_data = call.data
+	callback_data = input_data.split('_')[1]
+	print(callback_data)
+	chat_id = call.message.chat.id
+	tasks_list_keyboard = types.InlineKeyboardMarkup()
+	try:
+		conn = sqlite3.connect(USERS_PATH)
+		cursor = conn.cursor()
+		cursor.execute('SELECT task FROM users WHERE active_task = ?',
+		               (callback_data,))
+		text = cursor.fetchall()
+		backup_button = types.InlineKeyboardButton(text='Назад', callback_data='backup_task_select_button')
+		tasks_list_keyboard.add(backup_button)
+		bot.send_message(chat_id, f'Задание выглядит так:{text}', reply_markup=tasks_list_keyboard)
+		conn.close()
+	except sqlite3.Error as e:
+		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
+		conn.close()
 
 def connect_checker(call):
 	try:

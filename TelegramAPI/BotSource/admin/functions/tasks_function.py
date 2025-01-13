@@ -6,7 +6,7 @@ from telebot.types import InlineKeyboardMarkup
 from TelegramAPI.BotSource.admin.buttons import admin_buttons, tasks_buttons
 from TelegramAPI.config.config import TOKEN_API, ADMIN_TASKS_PATH
 from TelegramAPI.config import config
-from TelegramAPI.BotSource.admin.functions.projects_function import is_projects_open
+from TelegramAPI.BotSource.admin.functions.projects_function import if_projects_open
 
 bot = TeleBot(TOKEN_API)
 user_data = {}
@@ -17,7 +17,7 @@ def choose_project(message):
 	with open(photo_path, "rb") as photo:
 		bot.send_photo(chat_id=chat_id, photo=photo, reply_markup=tasks_buttons.choose_project_keyboard(message))
 
-def is_tasks_open(message):
+def if_tasks_open(message):
 	chat_id = message.chat.id
 	photo_path = config.TASKS
 	with open(photo_path, "rb") as photo:
@@ -25,7 +25,7 @@ def is_tasks_open(message):
 
 def tasks_list(message):
 	chat_id = message.chat.id
-	view_tasks_keyboard = InlineKeyboardMarkup()
+	markup = InlineKeyboardMarkup()
 	backup = types.InlineKeyboardButton('Назад', callback_data='backup_task_list_button')
 	try:
 		conn = sqlite3.connect(ADMIN_TASKS_PATH)
@@ -42,15 +42,19 @@ def tasks_list(message):
 		]
 
 		for button in buttons:
-			view_tasks_keyboard.add(button)
-		view_tasks_keyboard.add(backup)
-		return view_tasks_keyboard
+			markup.add(button)
+		markup.add(backup)
+		return markup
 		conn.close()
 	except Exception as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		is_projects_open(message)
+		if_projects_open(message)
 
-def is_tasks_list_open(call):
+def active_tasks_list(message):
+	chat_id = message.chat.id
+	bot.send_message(chat_id, 'Активные задания', reply_markup=admin_buttons.active_tasks_list_keyboard(message))
+
+def if_tasks_list_open(call):
 	callback_data = call.data
 	chat_id = call.message.chat.id
 	tasks_list_keyboard = types.InlineKeyboardMarkup()
@@ -66,7 +70,7 @@ def is_tasks_list_open(call):
 		conn.close()
 	except sqlite3.Error as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		select_tasks(call.message)
+		select_tasks_panel(call.message)
 		conn.close()
 
 def create_task(message):
@@ -106,19 +110,19 @@ def create_task(message):
 
 		if cursor.lastrowid:
 			bot.send_message(chat_id, text='Задание успешно добавлено')
-			is_tasks_open(message)
+			if_tasks_open(message)
 
 		else:
 			bot.send_message(chat_id, text='Не удалось добавить задание в БД')
-			is_tasks_open(message)
+			if_tasks_open(message)
 
 	except sqlite3.Error as e:
 		bot.send_message(chat_id, text=f'Ошибка работы с базой данных: {e}')
-		is_tasks_open(message)
+		if_tasks_open(message)
 	finally:
 		conn.close()
 
-def select_tasks(message):
+def select_tasks_panel(message):
 	chat_id = message.chat.id
 	photo_path = config.DELETE_TASK
 	with open(photo_path, "rb") as photo:
@@ -141,7 +145,7 @@ def view_selected_task(call):
 		conn.close()
 	except sqlite3.Error as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		select_tasks(call.message)
+		select_tasks_panel(call.message)
 		conn.close()
 
 def delete_task(call):
@@ -156,28 +160,32 @@ def delete_task(call):
 		conn.commit()
 		if cursor.rowcount > 0:
 			bot.send_message(chat_id, f"Задание {callback_data} был удалено")
-			is_tasks_open(call.message)
+			if_tasks_open(call.message)
 		else:
 			bot.send_message(chat_id, f"Задание {callback_data} не найдено")
 		conn.close()
 
 	except Exception as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		is_tasks_open(call.message)
+		if_tasks_open(call.message)
 		conn.close()
 
 def save_project_data(call):
 	chat_id = call.message.chat.id
+
 	project_name = call.data.split('project_')[1]
 	user_data[chat_id] = user_data.get(chat_id, { })
 	user_data[chat_id]['project'] = project_name
+
 	bot.send_message(chat_id, f'Вы выбрали проект: {project_name}')
 	bot.send_message(chat_id, "Теперь выберите направление:", reply_markup=tasks_buttons.choose_direction())
 
 def save_direction_data(call):
 	chat_id = call.message.chat.id
+
 	direction = call.data.split('dir_')[1]
 	user_data[chat_id] = user_data.get(chat_id, { })
 	user_data[chat_id]['direction'] = direction
+
 	bot.send_message(chat_id, f'Вы выбрали направление: {direction}')
 	bot.send_message(chat_id, "Напишите описание задачи:")

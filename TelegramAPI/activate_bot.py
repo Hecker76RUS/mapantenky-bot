@@ -2,11 +2,10 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot import TeleBot, types
 
 from TelegramAPI.BotSource.admin.functions import projects_function, profile_function, tasks_function
-from TelegramAPI.BotSource.user.functions.register_function import get_name
-from TelegramAPI.config.config import permissions_level, SUPERUSER_CHAT_ID, TOKEN_API
-from TelegramAPI.config import config
+from config.config import permissions_level, SUPERUSER_CHAT_ID, TOKEN_API
+from config import config
 from TelegramAPI.BotSource.keyboards import backup_keyboard, start_bot_keyboard
-from TelegramAPI.BotSource.admin.buttons.admin_buttons import admin_keyboard, connect_checker
+from TelegramAPI.BotSource.admin.buttons.admin_buttons import admin_keyboard, connect_checker, active_tasks_list_keyboard, active_task_text
 from TelegramAPI.BotSource.admin.buttons import tasks_buttons, projects_buttons
 from TelegramAPI.BotSource.user.functions import register_function, login_function, user_function, user_tasks_function, user_profile_function
 
@@ -114,14 +113,14 @@ def create_task_command(message):
 @bot.message_handler(commands=['delete_task'])
 def delete_task_command(message):
     if check_perms(message.chat.id) == 'superuser':
-        tasks_function.select_tasks(message)
+        tasks_function.select_tasks_panel(message)
     else:
         bot.send_message(message.chat.id, "У вас нет прав для выполнения этой команды.")
 
 @bot.message_handler(commands=['projects'])
 def projects_command(message):
     if check_perms(message.chat.id) == 'superuser':
-        bot.send_message(message.chat.id, "Управление проектами", reply_markup=projects_function.is_projects_open(message))
+        bot.send_message(message.chat.id, "Управление проектами", reply_markup=projects_function.if_projects_open(message))
     else:
         bot.send_message(message.chat.id, "У вас нет прав для выполнения этой команды.")
 
@@ -144,38 +143,7 @@ def delete_project_command(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
     chat_id = call.message.chat.id
-    callbacks = {
-
-        # ======= Админ панель =========
-        # Админ панель
-        'backup_button': lambda: send_role_selection(chat_id),
-        'superuser': lambda: check_superuser(chat_id),
-        'admin_tasks': lambda: tasks_function.is_tasks_open(call.message),
-        'admin_profile': lambda: profile_function.is_profile_open(call),
-
-        # Панель "Задания"
-        'admin_tasks_backup_button': lambda: admin(call.message),
-        'tasks_list': lambda: bot.send_message(chat_id, 'Список заданий:', reply_markup=tasks_function.tasks_list(call.message)),
-        'create_task': lambda: tasks_function.choose_project(call.message),
-        'delete_task': lambda: tasks_function.select_tasks(call.message),
-        'backup_task_select_button': lambda: tasks_function.is_tasks_open(call.message),
-        'backup_task_list_button': lambda: tasks_function.is_tasks_open(call.message),
-        'backup_task_choose_project_button': lambda: tasks_function.is_tasks_open(call.message),
-        'backup_tasks_choose_direction_button': lambda: tasks_function.choose_project(call.message),
-        'backup_delete_tasks_button': lambda:tasks_function.select_tasks(call.message),
-
-        # Панель "Проекты"
-        'admin_projects': lambda: projects_function.is_projects_open(call.message),
-        'admin_projects_backup_button': lambda: admin(call.message),
-        'delete_project': lambda: projects_function.select_project(call.message),
-        'projects_list': lambda: bot.send_message(chat_id, 'Существующие проекты:', reply_markup=projects_buttons.projects_list(call.message)),
-        'backup_projects_list_button': lambda: projects_function.is_projects_open(call.message),
-        'backup_projects_select_button': lambda: projects_function.is_projects_open(call.message),
-
-        # Панель "Профиль"
-        'ssh_key': lambda: profile_function.is_ssh_key_chose(call),
-        'admin_profile_backup_button': lambda: admin(call.message),
-        'admin_active_profile_backup_button': lambda: profile_function.is_profile_open(call),
+    user_panel_callback = {
 
         # ======== Юзер панель ==========
 
@@ -194,13 +162,53 @@ def callback_handler(call):
         'change_direction': lambda: user_profile_function.on_click_change_dir(call),
     }
 
+    admin_panel_callback = {
+
+        # ======= Админ панель =========
+
+        # Админ панель
+        'backup_button': lambda: send_role_selection(chat_id),
+        'superuser': lambda: check_superuser(chat_id),
+        'admin_tasks': lambda: tasks_function.if_tasks_open(call.message),
+        'admin_profile': lambda: profile_function.is_profile_open(call),
+        'active_tasks': lambda: tasks_function.active_tasks_list(call.message),
+
+        # Панель "Задания"
+        'admin_tasks_backup_button': lambda: admin(call.message),
+        'tasks_list': lambda: bot.send_message(chat_id, 'Список заданий:',
+                                               reply_markup=tasks_function.tasks_list(call.message)),
+        'create_task': lambda: tasks_function.choose_project(call.message),
+        'delete_task': lambda: tasks_function.select_tasks_panel(call.message),
+        'backup_task_select_button': lambda: tasks_function.if_tasks_open(call.message),
+        'backup_task_list_button': lambda: tasks_function.if_tasks_open(call.message),
+        'backup_task_choose_project_button': lambda: tasks_function.if_tasks_open(call.message),
+        'backup_tasks_choose_direction_button': lambda: tasks_function.choose_project(call.message),
+        'backup_delete_tasks_button': lambda: tasks_function.select_tasks_panel(call.message),
+
+        # Панель "Проекты"
+        'admin_projects': lambda: projects_function.if_projects_open(call.message),
+        'admin_projects_backup_button': lambda: admin(call.message),
+        'delete_project': lambda: projects_function.select_project(call.message),
+        'projects_list': lambda: bot.send_message(chat_id, 'Существующие проекты:',
+                                                  reply_markup=projects_buttons.projects_list(call.message)),
+        'backup_projects_list_button': lambda: projects_function.if_projects_open(call.message),
+        'backup_projects_select_button': lambda: projects_function.if_projects_open(call.message),
+
+        # Панель "Профиль"
+        'ssh_key': lambda: profile_function.is_ssh_key_chose(call),
+        'admin_profile_backup_button': lambda: admin(call.message),
+        'admin_active_profile_backup_button': lambda: profile_function.is_profile_open(call),
+    }
+
     # Проверка словаря
-    if call.data in callbacks:
-        callbacks[call.data]()
+    if call.data in admin_panel_callback:
+        admin_panel_callback[call.data]()
+    elif call.data in user_panel_callback:
+        user_panel_callback[call.data]()
 
     # call.data.startswith
     elif call.data.startswith('task_'):
-        tasks_function.is_tasks_list_open(call)
+        tasks_function.if_tasks_list_open(call)
     elif call.data.startswith("project_"):
         tasks_function.save_project_data(call)
     elif call.data.startswith("dir_"):
@@ -220,6 +228,9 @@ def callback_handler(call):
         user_tasks_function.claim_task(call)
     elif call.data.startswith('change_user_'):
         user_profile_function.change_direction(call)
+    elif call.data.startswith('active_'):
+        active_task_text(call)
+
 
     # ========== ИСКЛЮЧЕНИЯ ===========
     elif call.data == 'create_project':

@@ -30,10 +30,10 @@ def add_new_project_keyboard(message):
 			conn.commit()
 			conn.close()
 			bot.send_message(chat_id, text='Проект успешно добавлен в базу данных.')
-			projects_function.is_projects_open(message)
+			projects_function.if_projects_open(message)
 	except Exception as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		projects_function.is_projects_open(message)
+		projects_function.if_projects_open(message)
 	finally:
 		conn.close()
 
@@ -88,4 +88,4 @@ def select_project_keyboard(message):
 		conn.close()
 	except Exception as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		projects_function.is_projects_open(message)
+		projects_function.if_projects_open(message)

@@ -38,7 +38,7 @@ def show_user_task(call):
 		conn.close()
 	except sqlite3.Error as e:
 		bot.send_message(chat_id, f'Ошибка при работе с базой данных: {e}')
-		tasks_function.select_tasks(call.message)
+		tasks_function.select_tasks_panel(call.message)
 		conn.close()
 
 def claim_task(call):
